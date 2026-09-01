@@ -104,7 +104,7 @@
     border:1px solid var(--brand-blue);border-radius:5px;padding:2px 6px;opacity:.85;
   }
 
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;}
   .field{margin-bottom:12px;}
   .field.full{grid-column:1 / -1;}
   label{
@@ -415,23 +415,13 @@
     <h2><span class="n">1</span> Milestone WCP</h2>
     <div class="grid">
       <div class="field">
-        <label>WCP by 8th (₹)</label>
-        <input type="text" inputmode="decimal" id="in-wcp8" placeholder="0">
-      </div>
-      <div class="field">
-        <label>WCP by 10th (₹)</label>
-        <input type="text" inputmode="decimal" id="in-wcp10" placeholder="0">
-        <p class="error-msg" id="err-wcp10"></p>
+        <label>WCP by 9th (₹)</label>
+        <input type="text" inputmode="decimal" id="in-wcp9" placeholder="0">
       </div>
       <div class="field">
         <label>WCP by 14th (₹)</label>
         <input type="text" inputmode="decimal" id="in-wcp14" placeholder="0">
         <p class="error-msg" id="err-wcp14"></p>
-      </div>
-      <div class="field">
-        <label>WCP by 20th (₹)</label>
-        <input type="text" inputmode="decimal" id="in-wcp20" placeholder="0">
-        <p class="error-msg" id="err-wcp20"></p>
       </div>
       <div class="field full">
         <label>Full month WCP (₹)</label>
@@ -455,9 +445,9 @@
         <p class="hint" style="white-space:normal;overflow:visible;text-overflow:clip;">Do not include your self code in this count. Min FA team size is 3.</p>
       </div>
       <div class="field">
-        <label>FA active by 8th</label>
-        <input type="text" inputmode="decimal" id="in-faactive8" placeholder="0">
-        <p class="error-msg" id="err-faactive8"></p>
+        <label>FA active by 9th</label>
+        <input type="text" inputmode="decimal" id="in-faactive9" placeholder="0">
+        <p class="error-msg" id="err-faactive9"></p>
       </div>
       <div class="field">
         <label>FA active by 10th</label>
@@ -572,20 +562,25 @@
   <div class="card">
     <div class="grid">
       <div class="field">
-        <label>Goa / ₹35,000</label>
-        <select id="in-goa-choice">
-          <option value="cash">₹35,000 cash</option>
-          <option value="trip">Goa trip</option>
+        <label>Option 1</label>
+        <select id="in-harley-choice">
+          <option value="cash">₹3,50,000 cash</option>
+          <option value="vehicle">Harley Davidson + ₹50,000</option>
         </select>
-        <p class="hint">For Goa-tier reward.</p>
       </div>
       <div class="field">
-        <label>Almaty / ₹70,000</label>
-        <select id="in-almaty-choice">
-          <option value="cash">₹70,000 cash</option>
-          <option value="trip">Almaty trip</option>
+        <label>Option 2</label>
+        <select id="in-i10-choice">
+          <option value="cash">₹7,00,000 cash</option>
+          <option value="vehicle">Hyundai i10</option>
         </select>
-        <p class="hint">For Almaty-tier reward.</p>
+      </div>
+      <div class="field">
+        <label>Option 3</label>
+        <select id="in-nexon-choice">
+          <option value="cash">₹10,00,000 cash</option>
+          <option value="vehicle">Tata Nexon</option>
+        </select>
       </div>
     </div>
   </div>
@@ -695,9 +690,9 @@ function parseNum(val){
   return isNaN(n) ? 0 : n;
 }
 
-const currencyFieldIds = ["in-wcp8","in-wcp10","in-wcp14","in-wcp20","in-wcpfull","in-selfcode","in-trad"];
+const currencyFieldIds = ["in-wcp9","in-wcp14","in-wcpfull","in-selfcode","in-trad"];
 const percentFieldIds  = ["in-lastach","in-13m","in-m0","in-25m","in-improvement","in-movement"];
-const plainNumberFieldIds = ["in-teamsize","in-faactive8","in-faactive10","in-faactive14","in-faactivefull","in-faearners"];
+const plainNumberFieldIds = ["in-teamsize","in-faactive9","in-faactive10","in-faactive14","in-faactivefull","in-faearners"];
 
 function cleanNumericString(raw){
   let cleaned = raw.replace(/[^0-9.]/g, "");
@@ -799,10 +794,8 @@ document.querySelectorAll(".tab").forEach(t=>{
 
 /* ---------- milestone WCP validation ---------- */
 const milestoneChain = [
-  {id:"in-wcp8",  label:"WCP by 8th"},
-  {id:"in-wcp10", label:"WCP by 10th"},
+  {id:"in-wcp9",  label:"WCP by 9th"},
   {id:"in-wcp14", label:"WCP by 14th"},
-  {id:"in-wcp20", label:"WCP by 20th"},
   {id:"in-wcpfull", label:"Full month WCP"}
 ];
 
@@ -836,7 +829,7 @@ milestoneChain.forEach(m => {
 
 /* ---------- FA active count validation (later date can't be lower) ---------- */
 const faActiveChain = [
-  {id:"in-faactive8",  label:"FA active by 8th"},
+  {id:"in-faactive9",  label:"FA active by 9th"},
   {id:"in-faactive10", label:"FA active by 10th"},
   {id:"in-faactive14", label:"FA active by 14th"},
   {id:"in-faactivefull", label:"FA active — full month"}
@@ -891,8 +884,8 @@ document.getElementById("in-wcpfull").addEventListener("input", validateTrad);
 
 /* ---------- form completeness & button enable/disable ---------- */
 const requiredTextFieldIds = [
-  "in-wcp8","in-wcp10","in-wcp14","in-wcp20","in-wcpfull","in-selfcode",
-  "in-teamsize","in-faactive8","in-faactive10","in-faactive14","in-faactivefull","in-faearners",
+  "in-wcp9","in-wcp14","in-wcpfull","in-selfcode",
+  "in-teamsize","in-faactive9","in-faactive10","in-faactive14","in-faactivefull","in-faearners",
   "in-trad","in-lastach"
 ];
 
@@ -927,8 +920,8 @@ function updateButtonStates(){
 }
 
 const otherInputIds = [
-  "in-wcp8","in-wcp10","in-wcp14","in-wcp20","in-wcpfull","in-selfcode",
-  "in-teamsize","in-faactive8","in-faactive10","in-faactive14","in-faactivefull","in-faearners",
+  "in-wcp9","in-wcp14","in-wcpfull","in-selfcode",
+  "in-teamsize","in-faactive9","in-faactive10","in-faactive14","in-faactivefull","in-faearners",
   "in-trad","in-lastach","in-13m","in-m0","in-improvement","in-25m","in-movement"
 ];
 
@@ -1002,10 +995,10 @@ function markInputsChanged(){
 }
 
 const allTrackedFieldIds = [
-  "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp8","in-wcp10","in-wcp14","in-wcp20","in-wcpfull","in-selfcode",
-  "in-teamsize","in-faactive8","in-faactive10","in-faactive14","in-faactivefull","in-faearners",
+  "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp9","in-wcp14","in-wcpfull","in-selfcode",
+  "in-teamsize","in-faactive9","in-faactive10","in-faactive14","in-faactivefull","in-faearners",
   "in-trad","in-lastach","in-book-type","in-13m","in-m0","in-improvement","in-25m","in-movement",
-  "in-goa-choice","in-almaty-choice"
+  "in-harley-choice","in-i10-choice","in-nexon-choice"
 ];
 allTrackedFieldIds.forEach(id => {
   const el = document.getElementById(id);
@@ -1069,17 +1062,15 @@ function buildInputBoxes(){
   ]});
 
   boxes.push({title:"Milestone WCP", rows:[
-    ["WCP by 8th", inputVal("in-wcp8")],
-    ["WCP by 10th", inputVal("in-wcp10")],
+    ["WCP by 9th", inputVal("in-wcp9")],
     ["WCP by 14th", inputVal("in-wcp14")],
-    ["WCP by 20th", inputVal("in-wcp20")],
     ["Full month WCP", inputVal("in-wcpfull")],
     ["Self-code business achieved", inputVal("in-selfcode")]
   ]});
 
   boxes.push({title:"FA Team & Active", rows:[
     ["FA team size", inputVal("in-teamsize")],
-    ["FA active by 8th", inputVal("in-faactive8")],
+    ["FA active by 9th", inputVal("in-faactive9")],
     ["FA active by 10th", inputVal("in-faactive10")],
     ["FA active by 14th", inputVal("in-faactive14")],
     ["FA active — full month", inputVal("in-faactivefull")],
@@ -1110,8 +1101,9 @@ function buildInputBoxes(){
   boxes.push({title:"Quality Modifier", rows:qmRows});
 
   boxes.push({title:"Reward Choices", rows:[
-    ["Goa / ₹35,000", selectText("in-goa-choice")],
-    ["Almaty / ₹70,000", selectText("in-almaty-choice")]
+    ["Option 1", selectText("in-harley-choice")],
+    ["Option 2", selectText("in-i10-choice")],
+    ["Option 3", selectText("in-nexon-choice")]
   ]});
 
   return `<div class="box-grid">${boxes.map(b => `
@@ -1132,14 +1124,12 @@ function buildSubmissionPayload(){
     "State": selectText("in-state"),
     "Designation": selectText("in-desig"),
     "Channel": selectText("in-channel"),
-    "WCP by 8th": document.getElementById("in-wcp8").value,
-    "WCP by 10th": document.getElementById("in-wcp10").value,
+    "WCP by 9th": document.getElementById("in-wcp9").value,
     "WCP by 14th": document.getElementById("in-wcp14").value,
-    "WCP by 20th": document.getElementById("in-wcp20").value,
     "Full month WCP": document.getElementById("in-wcpfull").value,
     "Self-code business achieved": document.getElementById("in-selfcode").value,
     "FA team size": document.getElementById("in-teamsize").value,
-    "FA active by 8th": document.getElementById("in-faactive8").value,
+    "FA active by 9th": document.getElementById("in-faactive9").value,
     "FA active by 10th": document.getElementById("in-faactive10").value,
     "FA active by 14th": document.getElementById("in-faactive14").value,
     "FA active full month": document.getElementById("in-faactivefull").value,
@@ -1160,8 +1150,9 @@ function buildSubmissionPayload(){
       payload["13M persistency movement %"] = document.getElementById("in-movement").value;
     }
   }
-  payload["Goa choice"] = selectText("in-goa-choice");
-  payload["Almaty choice"] = selectText("in-almaty-choice");
+  payload["Harley Davidson choice"] = selectText("in-harley-choice");
+  payload["Hyundai i10 choice"] = selectText("in-i10-choice");
+  payload["Tata Nexon choice"] = selectText("in-nexon-choice");
   return payload;
 }
 
@@ -1433,11 +1424,11 @@ function calcProductionIncentive(){
 }
 
 /* ---------- RNR ---------- */
+// Sizzler rewards can be cash (value) or a trip (string) — no cash-or-trip choice.
 const sizzlerRows = [
-  {faActive:3, wcp:400000,  r8:{value:20000, trip:null},    r14:{value:10000, trip:null}},
-  {faActive:3, wcp:600000,  r8:{value:35000, trip:null},    r14:{value:17500, trip:null}},
-  {faActive:4, wcp:1000000, r8:{value:40000, trip:"Goa", tripCash:5000},   r14:{value:25000, trip:null}},
-  {faActive:4, wcp:1500000, r8:{value:70000, trip:"Almaty"},r14:{value:35000, trip:"Goa"}}
+  {faActive:3, wcp:500000,  r9:{value:25000},          r14:{value:12500}},
+  {faActive:3, wcp:800000,  r9:{trip:"Kashmir (S)"},   r14:{value:40000}},
+  {faActive:4, wcp:1200000, r9:{trip:"Kashmir (WS)"},  r14:{trip:"Kashmir (S)"}}
 ];
 
 function findSizzlerSlab(faActiveVal, wcpVal, side){
@@ -1450,12 +1441,12 @@ function findSizzlerSlab(faActiveVal, wcpVal, side){
   return best;
 }
 
-function resolveSlabReward(slab, gate2Met, goaChoice, almatyChoice){
+function resolveSlabReward(slab, gate2Met){
   if (!slab) return {cash:0, trip:null};
-  if (!gate2Met) return {cash: slab.value * 0.5, trip:null};
-  if (slab.trip === "Goa") return goaChoice === "trip" ? {cash: slab.tripCash || 0, trip:"Goa"} : {cash:slab.value, trip:null};
-  if (slab.trip === "Almaty") return almatyChoice === "trip" ? {cash: slab.tripCash || 0, trip:"Almaty"} : {cash:slab.value, trip:null};
-  return {cash:slab.value, trip:null};
+  if (slab.trip){
+    return gate2Met ? {cash:0, trip:slab.trip} : {cash:0, trip:null};
+  }
+  return {cash: gate2Met ? slab.value : slab.value * 0.5, trip:null};
 }
 function formatSlabResult(resolved){
   if (!resolved) return "—";
@@ -1466,80 +1457,88 @@ function formatSlabResult(resolved){
 }
 
 const monthly = [
-  {wcp:800000,   reward:10000,  label:"₹10K"},
-  {wcp:1100000,  reward:20000,  label:"₹20K"},
-  {wcp:1500000,  reward:60000,  label:"₹60K"},
-  {wcp:2000000,  reward:100000, label:"₹1L"},
-  {wcp:2500000,  reward:160000, label:"₹1.6L"},
-  {wcp:4000000,  reward:200000, label:"₹2L"},
-  {wcp:6500000,  reward:350000, label:"Japan + ₹3.5L", tripAlways:"Japan"}
+  {wcp:1000000,  reward:10000},
+  {wcp:1500000,  reward:35000},
+  {wcp:2200000,  reward:60000},
+  {wcp:3000000,  reward:0,      tripAlways:"Malaysia (S)"},
+  {wcp:5000000,  reward:0,      tripAlways:"Malaysia (WS)"},
+  {wcp:8000000,  reward:350000,  choiceId:"in-harley-choice", vehicleName:"Harley Davidson", vehicleBonus:50000},
+  {wcp:10000000, reward:700000,  choiceId:"in-i10-choice",    vehicleName:"Hyundai i10"},
+  {wcp:12500000, reward:1000000, choiceId:"in-nexon-choice",  vehicleName:"Tata Nexon"}
 ];
 
 function monthlyLabel(row){
   if (!row) return "—";
-  return row.tripAlways ? (row.tripAlways + " + " + inr(row.reward)) : inr(row.reward);
+  if (row.choiceId){
+    const bonus = row.vehicleBonus ? ` + ${inr(row.vehicleBonus)}` : "";
+    return `${inr(row.reward)} cash or ${row.vehicleName}${bonus}`;
+  }
+  if (row.tripAlways) return row.reward > 0 ? `${row.tripAlways} + ${inr(row.reward)}` : row.tripAlways;
+  return inr(row.reward);
 }
-
-const fastTrack = [
-  {idx:2, wcp:1050000},
-  {idx:3, wcp:1400000},
-  {idx:4, wcp:1750000},
-  {idx:5, wcp:2800000},
-  {idx:6, wcp:4550000}
-];
 
 function calcRNR(){
   const desig = document.getElementById("in-desig").value;
   const channel = document.getElementById("in-channel").value;
   const monthIdx = FIXED_MONTH_IDX;
-  const wcp8 = parseNum(document.getElementById("in-wcp8").value);
-  const wcp10 = parseNum(document.getElementById("in-wcp10").value);
+  const wcp9 = parseNum(document.getElementById("in-wcp9").value);
   const wcp14 = parseNum(document.getElementById("in-wcp14").value);
-  const wcp20 = parseNum(document.getElementById("in-wcp20").value);
   const wcpFull = parseNum(document.getElementById("in-wcpfull").value);
-  const faActive8 = parseNum(document.getElementById("in-faactive8").value);
+  const faActive9 = parseNum(document.getElementById("in-faactive9").value);
   const faActive10 = parseNum(document.getElementById("in-faactive10").value);
   const faActive14 = parseNum(document.getElementById("in-faactive14").value);
   const faActiveFull = parseNum(document.getElementById("in-faactivefull").value);
-  const goaChoice = document.getElementById("in-goa-choice").value;
-  const almatyChoice = document.getElementById("in-almaty-choice").value;
 
   // Gate 2: 100% target achievement in the month, else RNR payout is 50% (cash only)
   const target = targets[channel][desig][monthIdx];
   const achPct = target > 0 ? (wcpFull/target*100) : 0;
   const gate2Met = achPct >= 100;
 
-  // Sizzler — both FA active AND WCP milestone must be met together for a slab
-  const r8Slab = findSizzlerSlab(faActive8, wcp8, "r8");
-  const r14Slab = findSizzlerSlab(faActive14, wcp14, "r14");
-  const r8Value = r8Slab ? r8Slab.value : 0;
-  const r14Value = r14Slab ? r14Slab.value : 0;
-  const chosenSlab = r8Value >= r14Value ? r8Slab : r14Slab;
-  const sizzlerSource = r8Value >= r14Value ? "by 8th" : "by 14th";
-  const sizzlerResolved = resolveSlabReward(chosenSlab, gate2Met, goaChoice, almatyChoice);
-  const r8Resolved = resolveSlabReward(r8Slab, gate2Met, goaChoice, almatyChoice);
-  const r14Resolved = resolveSlabReward(r14Slab, gate2Met, goaChoice, almatyChoice);
-  const displayR8 = formatSlabResult(r8Resolved);
+  // Sizzler — both FA active AND WCP milestone must be met together for a slab.
+  // Whichever checkpoint (9th/14th) reaches the higher tier wins (ties favor 9th),
+  // since some tiers pay a trip with no stated cash value.
+  let idx9 = -1, idx14 = -1;
+  for (let i=0;i<sizzlerRows.length;i++){
+    const row = sizzlerRows[i];
+    if (faActive9 >= row.faActive && wcp9 >= row.wcp) idx9 = i;
+    if (faActive14 >= row.faActive && wcp14 >= row.wcp) idx14 = i;
+  }
+  const r9Slab = idx9 >= 0 ? sizzlerRows[idx9].r9 : null;
+  const r14Slab = idx14 >= 0 ? sizzlerRows[idx14].r14 : null;
+  const sizzlerSource = idx9 >= idx14 ? "by 9th" : "by 14th";
+  const chosenSlab = idx9 >= idx14 ? r9Slab : r14Slab;
+  const sizzlerResolved = resolveSlabReward(chosenSlab, gate2Met);
+  const r9Resolved = resolveSlabReward(r9Slab, gate2Met);
+  const r14Resolved = resolveSlabReward(r14Slab, gate2Met);
+  const displayR9 = formatSlabResult(r9Resolved);
   const displayR14 = formatSlabResult(r14Resolved);
 
-  // Monthly contest — standard (full month) + fast-track (by 20th)
+  // Monthly contest — full month WCP only
   let stdIdx = -1;
   for (let i=0;i<monthly.length;i++){
     if (wcpFull >= monthly[i].wcp) stdIdx = i;
   }
-  let ftIdx = -1;
-  for (const f of fastTrack){
-    if (wcp20 >= f.wcp) ftIdx = Math.max(ftIdx, f.idx);
-  }
-  const finalIdx = Math.max(stdIdx, ftIdx);
+  const finalIdx = stdIdx;
   const monthlyRow = finalIdx >= 0 ? monthly[finalIdx] : null;
-  const monthlyRawCash = monthlyRow ? monthlyRow.reward : 0;
-  const monthlyCash = gate2Met ? monthlyRawCash : monthlyRawCash * 0.5;
-  const monthlyTrip = (monthlyRow && monthlyRow.tripAlways && gate2Met) ? monthlyRow.tripAlways : null;
+  let monthlyCash = 0;
+  let monthlyTrip = null;
+  let monthlyVehicle = null;
+  if (monthlyRow){
+    const vehicleChosen = monthlyRow.choiceId && gate2Met && document.getElementById(monthlyRow.choiceId).value === "vehicle";
+    if (vehicleChosen){
+      monthlyVehicle = monthlyRow.vehicleName;
+      monthlyCash = monthlyRow.vehicleBonus || 0;
+    } else {
+      monthlyCash = gate2Met ? monthlyRow.reward : monthlyRow.reward * 0.5;
+      monthlyTrip = (monthlyRow.tripAlways && gate2Met) ? monthlyRow.tripAlways : null;
+    }
+  }
+  const monthlyVehicleDisplay = monthlyVehicle
+    ? (monthlyRow.vehicleBonus ? `${monthlyVehicle} + ${inr(monthlyRow.vehicleBonus)}` : monthlyVehicle)
+    : null;
   const monthlyDisplay = monthlyRow
-    ? (gate2Met ? monthlyLabel(monthlyRow) : `${inr(monthlyCash)} (50% — Gate 2 not met)`)
+    ? (gate2Met ? (monthlyVehicleDisplay || monthlyLabel(monthlyRow)) : `${inr(monthlyCash)} (50% — Gate 2 not met)`)
     : "No slab met";
-  const viaFastTrack = ftIdx >= 0 && ftIdx > stdIdx;
 
   // Zonal meet — 2 FA active by 10th + 3 FA active by full month + any Monthly Contest slab met
   const zonalQualified = (faActive10 >= 2) && (faActiveFull >= 3) && (finalIdx >= 0);
@@ -1556,14 +1555,13 @@ function calcRNR(){
     <div class="line ${gate2Met ? 'pos' : ''}"><span class="lbl">Gate 2 — 100% target achievement</span><span class="val">${gate2Met ? "✓ Met — full payout" : "✗ Not met — 50% payout, cash only"}</span></div>
 
     <div class="divider"></div>
-    <div class="line sub"><span class="lbl">Sizzler — reward by 8th<br>(${faActive8} FA active, ₹${wcp8.toLocaleString("en-IN")} WCP)</span><span class="val">${displayR8}</span></div>
+    <div class="line sub"><span class="lbl">Sizzler — reward by 9th<br>(${faActive9} FA active, ₹${wcp9.toLocaleString("en-IN")} WCP)</span><span class="val">${displayR9}</span></div>
     <div class="line sub"><span class="lbl">Sizzler — reward by 14th<br>(${faActive14} FA active, ₹${wcp14.toLocaleString("en-IN")} WCP)</span><span class="val">${displayR14}</span></div>
     <div class="line pos"><span class="lbl">Sizzler payout<br>(higher, ${sizzlerSource})</span><span class="val">${formatSlabResult(sizzlerResolved)}</span></div>
 
     <div class="divider"></div>
-    <div class="line sub"><span class="lbl">Monthly slab met — standard<br>(full month)</span><span class="val">${stdIdx>=0 ? monthlyLabel(monthly[stdIdx]) : "—"}</span></div>
-    <div class="line sub"><span class="lbl">Monthly slab met — fast-track<br>(by 20th)</span><span class="val">${ftIdx>=0 ? monthlyLabel(monthly[ftIdx]) : "—"}</span></div>
-    <div class="line pos"><span class="lbl">Monthly Contest payout${viaFastTrack ? "<br>(via fast-track)" : ""}</span><span class="val">${monthlyDisplay}</span></div>
+    <div class="line sub"><span class="lbl">Monthly slab met<br>(full month)</span><span class="val">${stdIdx>=0 ? monthlyLabel(monthly[stdIdx]) : "—"}</span></div>
+    <div class="line pos"><span class="lbl">Monthly Contest payout</span><span class="val">${monthlyDisplay}</span></div>
 
     <div class="divider"></div>
     ${zonalQualified ? `<div class="flag">✓ Qualifies for Zonal Meet (2 FA active by 10th + 3 FA active full month + monthly slab met)</div>` : `<div class="note">Zonal Meet not qualified — needs 2 FA active by 10th, 3 FA active by full month, and any Monthly Contest slab met.</div>`}
@@ -1580,6 +1578,10 @@ function calcRNR(){
   trips.forEach(t=>{
     html += `<div class="trip-box"><span class="icon">✈️</span><span class="txt">Plus: ${t} trip</span></div>`;
   });
+
+  if (monthlyVehicle){
+    html += `<div class="trip-box"><span class="icon">🚗</span><span class="txt">Plus: Monthly Contest — ${monthlyVehicleDisplay}</span></div>`;
+  }
 
   html += `<p class="note">Does not check scheme gates — actual payout is subject to gates being met.</p>`;
 
