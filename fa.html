@@ -438,11 +438,6 @@
       </label>
       <p class="hint" style="white-space:normal;overflow:visible;text-overflow:clip;">If checked, 1 FTP NOP will automatically be counted as 3 for the second slab (10 NOP) in NOP ka Dhamaaka contest.</p>
     </div>
-    <div class="field full" id="ftp-ticket-wrap" style="display:none;">
-      <label>FTP ticket size (₹)</label>
-      <input type="text" inputmode="decimal" id="in-ftp-ticket" placeholder="e.g. 35000">
-      <p class="hint" style="white-space:normal;overflow:visible;text-overflow:clip;">Must be ≥ ₹30,000 (Min ATS) for the 1 FTP = 3 NOP boost to apply.</p>
-    </div>
   </div>
 
   <div class="card">
@@ -632,7 +627,7 @@ function formatPercentDisplay(n){
   return (Math.round(n*100)/100) + "%";
 }
 
-const currencyFieldIds = ["in-wcp7","in-wcp9","in-wcp14","in-wcpfull","in-trad","in-ftp-ticket"];
+const currencyFieldIds = ["in-wcp7","in-wcp9","in-wcp14","in-wcpfull","in-trad"];
 const percentFieldIds  = ["in-lastach","in-13m","in-m0","in-25m","in-improvement"];
 
 function cleanNumericString(raw){
@@ -714,13 +709,6 @@ document.querySelectorAll('input[name="alloc-status"]').forEach(r=>{
     document.getElementById("nop-collected-wrap").style.display = (status === "allocated") ? "block" : "none";
     document.getElementById("not-allocated-note").style.display = (status === "not-allocated") ? "block" : "none";
   });
-});
-
-/* FTP NOP toggle — reveals FTP ticket size input for NOP ka Dhamaaka contest */
-document.getElementById("in-ftp-nop").addEventListener("change", ()=>{
-  const checked = document.getElementById("in-ftp-nop").checked;
-  document.getElementById("ftp-ticket-wrap").style.display = checked ? "block" : "none";
-  if (!checked) document.getElementById("in-ftp-ticket").value = "";
 });
 
 /* MDRT status toggle — "Will achieve MDRT this month" only applies when not already MDRT */
@@ -915,7 +903,7 @@ function markInputsChanged(){
 const allTrackedFieldIds = [
   "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp7","in-wcp9","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach","in-book-type","in-13m","in-m0","in-improvement","in-25m",
-  "in-nop-collected","in-harley-choice","in-i10-choice","in-nexon-choice","in-ftp-nop","in-ftp-ticket",
+  "in-nop-collected","in-harley-choice","in-i10-choice","in-nexon-choice","in-ftp-nop",
   "in-mdrt-status","in-mdrt-target"
 ];
 allTrackedFieldIds.forEach(id => {
@@ -1341,7 +1329,6 @@ function calcRNR(){
   const wcpFull = parseNum(document.getElementById("in-wcpfull").value);
   const nop = parseFloat(document.getElementById("in-nop").value) || 0;
   const ftpNopChecked = document.getElementById("in-ftp-nop").checked;
-  const ftpTicketSize = parseNum(document.getElementById("in-ftp-ticket").value);
   const mdrtStatus = document.getElementById("in-mdrt-status").value;
   const mdrtTarget = document.getElementById("in-mdrt-target").checked;
 
@@ -1395,9 +1382,8 @@ function calcRNR(){
     : "No slab met";
 
   // NOP ka Dhamaaka — 5 NOP -> 5K CV, 10 NOP -> Lenovo Tablet (highest slab wins)
-  // 1 FTP NOP counts as 3 NOP, but only toward the 10 NOP slab, and only if the
-  // FTP ticket size meets the ₹30,000 Min ATS requirement.
-  const ftpBoostApplies = ftpNopChecked && ftpTicketSize >= 30000;
+  // 1 FTP NOP counts as 3 NOP, but only toward the 10 NOP slab.
+  const ftpBoostApplies = ftpNopChecked;
   const nopFor10Slab = nop + (ftpBoostApplies ? 2 : 0);
   let nopDhamaakaPrize = null;
   if (nopFor10Slab >= 10) nopDhamaakaPrize = "Lenovo Tablet";
@@ -1435,7 +1421,7 @@ function calcRNR(){
 
     <div class="divider"></div>
     <div class="line sub"><span class="lbl">NOP achieved</span><span class="val">${nop}</span></div>
-    ${ftpNopChecked ? `<div class="line sub"><span class="lbl">FTP NOP boost<br>(ticket size ${inr(ftpTicketSize)})</span><span class="val">${ftpBoostApplies ? "✓ Applied — counts as 3 NOP" : "✗ Not applied — ticket size below ₹30,000"}</span></div>
+    ${ftpNopChecked ? `<div class="line sub"><span class="lbl">FTP NOP boost</span><span class="val">✓ Applied — counts as 3 NOP</span></div>
     <div class="line sub"><span class="lbl">Effective NOP<br>(for 10 NOP slab only)</span><span class="val">${nopFor10Slab}</span></div>` : ""}
     <div class="line pos"><span class="lbl">NOP ka Dhamaaka payout</span><span class="val">${nopDhamaakaPrize || "No slab met"}</span></div>
 
