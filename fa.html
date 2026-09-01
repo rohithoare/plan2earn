@@ -518,6 +518,30 @@
         </select>
         <p class="hint">For Almaty-tier reward.</p>
       </div>
+      <div class="field">
+        <label>Harley Davidson / ₹3,00,000</label>
+        <select id="in-harley-choice">
+          <option value="cash">₹3,00,000 cash</option>
+          <option value="vehicle">Harley Davidson</option>
+        </select>
+        <p class="hint">For the ₹30,00,000+ Monthly Contest tier.</p>
+      </div>
+      <div class="field">
+        <label>Hyundai i10 / ₹7,00,000</label>
+        <select id="in-i10-choice">
+          <option value="cash">₹7,00,000 cash</option>
+          <option value="vehicle">Hyundai i10</option>
+        </select>
+        <p class="hint">For the ₹55,00,000+ Monthly Contest tier.</p>
+      </div>
+      <div class="field">
+        <label>Tata Nexon / ₹10,00,000</label>
+        <select id="in-nexon-choice">
+          <option value="cash">₹10,00,000 cash</option>
+          <option value="vehicle">Tata Nexon</option>
+        </select>
+        <p class="hint">For the ₹75,00,000+ Monthly Contest tier.</p>
+      </div>
     </div>
   </div>
 
@@ -883,7 +907,7 @@ function markInputsChanged(){
 const allTrackedFieldIds = [
   "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp7","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach","in-book-type","in-13m","in-m0","in-improvement","in-25m",
-  "in-nop-collected","in-goa-choice","in-almaty-choice","in-ftp-nop","in-ftp-ticket"
+  "in-nop-collected","in-goa-choice","in-almaty-choice","in-harley-choice","in-i10-choice","in-nexon-choice","in-ftp-nop","in-ftp-ticket"
 ];
 allTrackedFieldIds.forEach(id => {
   const el = document.getElementById(id);
@@ -972,7 +996,10 @@ function buildInputBoxes(){
 
   boxes.push({title:"Reward Choices", rows:[
     ["Goa / ₹35,000", selectText("in-goa-choice")],
-    ["Almaty / ₹70,000", selectText("in-almaty-choice")]
+    ["Almaty / ₹70,000", selectText("in-almaty-choice")],
+    ["Harley Davidson / ₹3,00,000", selectText("in-harley-choice")],
+    ["Hyundai i10 / ₹7,00,000", selectText("in-i10-choice")],
+    ["Tata Nexon / ₹10,00,000", selectText("in-nexon-choice")]
   ]});
 
   return `<div class="box-grid">${boxes.map(b => `
@@ -1015,6 +1042,9 @@ function buildSubmissionPayload(){
   }
   payload["Goa choice"] = selectText("in-goa-choice");
   payload["Almaty choice"] = selectText("in-almaty-choice");
+  payload["Harley Davidson choice"] = selectText("in-harley-choice");
+  payload["Hyundai i10 choice"] = selectText("in-i10-choice");
+  payload["Tata Nexon choice"] = selectText("in-nexon-choice");
   return payload;
 }
 
@@ -1257,19 +1287,22 @@ const sizzler = [
 ];
 
 const monthly = [
-  {nop:2, fa1:250000,  fa2:300000,  fa3:350000,  reward:3500,   label:"₹3.5K"},
-  {nop:2, fa1:400000,  fa2:450000,  fa3:500000,  reward:10000,  label:"₹10K"},
-  {nop:2, fa1:500000,  fa2:600000,  fa3:700000,  reward:20000,  label:"₹20K"},
-  {nop:2, fa1:700000,  fa2:800000,  fa3:900000,  reward:65000,  label:"₹65K"},
-  {nop:2, fa1:1000000, fa2:1200000, fa3:1400000, reward:100000, label:"₹1L"},
-  {nop:2, fa1:1500000, fa2:1800000, fa3:2100000, reward:170000, label:"₹1.7L"},
-  {nop:3, fa1:2000000, fa2:2300000, fa3:2600000, reward:200000, label:"₹2L"},
-  {nop:3, fa1:3000000, fa2:4000000, fa3:5000000, reward:350000, label:"Japan + ₹3.5L", tripAlways:"Japan"}
+  {nop:2, fa1:300000,  fa2:350000,  fa3:400000,   reward:3500},
+  {nop:2, fa1:450000,  fa2:500000,  fa3:550000,   reward:10000},
+  {nop:2, fa1:700000,  fa2:900000,  fa3:1100000,  reward:35000},
+  {nop:2, fa1:900000,  fa2:1100000, fa3:1300000,  reward:0,      tripAlways:"Malaysia (S)"},
+  {nop:2, fa1:1500000, fa2:2000000, fa3:2500000,  reward:20000,  tripAlways:"Malaysia (S)"},
+  {nop:2, fa1:2100000, fa2:2600000, fa3:2850000,  reward:0,      tripAlways:"Malaysia (WS)"},
+  {nop:3, fa1:3000000, fa2:4000000, fa3:5000000,  reward:300000,  choiceId:"in-harley-choice", vehicleName:"Harley Davidson"},
+  {nop:3, fa1:5500000, fa2:6500000, fa3:7500000,  reward:700000,  choiceId:"in-i10-choice",     vehicleName:"Hyundai i10"},
+  {nop:3, fa1:7500000, fa2:8500000, fa3:10000000, reward:1000000, choiceId:"in-nexon-choice",   vehicleName:"Tata Nexon"}
 ];
 
 function monthlyLabel(row){
   if (!row) return "—";
-  return row.tripAlways ? (row.tripAlways + " + " + inr(row.reward)) : inr(row.reward);
+  if (row.choiceId) return `${inr(row.reward)} cash or ${row.vehicleName}`;
+  if (row.tripAlways) return row.reward > 0 ? `${row.tripAlways} + ${inr(row.reward)}` : row.tripAlways;
+  return inr(row.reward);
 }
 
 function resolveSizzlerReward(value, goaChoice, almatyChoice, gate2Met){
@@ -1328,11 +1361,20 @@ function calcRNR(){
 
   const finalIdx = stdIdx;
   const monthlyRow = finalIdx >= 0 ? monthly[finalIdx] : null;
-  const monthlyRawCash = monthlyRow ? monthlyRow.reward : 0;
-  const monthlyCash = gate2Met ? monthlyRawCash : monthlyRawCash * 0.5;
-  const monthlyTrip = (monthlyRow && monthlyRow.tripAlways && gate2Met) ? monthlyRow.tripAlways : null;
+  let monthlyCash = 0;
+  let monthlyTrip = null;
+  let monthlyVehicle = null;
+  if (monthlyRow){
+    const vehicleChosen = monthlyRow.choiceId && gate2Met && document.getElementById(monthlyRow.choiceId).value === "vehicle";
+    if (vehicleChosen){
+      monthlyVehicle = monthlyRow.vehicleName;
+    } else {
+      monthlyCash = gate2Met ? monthlyRow.reward : monthlyRow.reward * 0.5;
+      monthlyTrip = (monthlyRow.tripAlways && gate2Met) ? monthlyRow.tripAlways : null;
+    }
+  }
   const monthlyDisplay = monthlyRow
-    ? (gate2Met ? monthlyLabel(monthlyRow) : `${inr(monthlyCash)} (50% — Gate 2 not met)`)
+    ? (gate2Met ? (monthlyVehicle ? monthlyVehicle : monthlyLabel(monthlyRow)) : `${inr(monthlyCash)} (50% — Gate 2 not met)`)
     : "No slab met";
 
   // NOP ka Dhamaaka — 5 NOP -> 5K CV, 10 NOP -> Lenovo Tablet (highest slab wins)
@@ -1384,6 +1426,10 @@ function calcRNR(){
   trips.forEach(t=>{
     html += `<div class="trip-box"><span class="icon">✈️</span><span class="txt">Plus: ${t} trip</span></div>`;
   });
+
+  if (monthlyVehicle){
+    html += `<div class="trip-box"><span class="icon">🚗</span><span class="txt">Plus: Monthly Contest — ${monthlyVehicle}</span></div>`;
+  }
 
   if (nopDhamaakaPrize){
     html += `<div class="trip-box"><span class="icon">🎁</span><span class="txt">Plus: NOP ka Dhamaaka — ${nopDhamaakaPrize}</span></div>`;
