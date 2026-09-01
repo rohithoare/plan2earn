@@ -1397,6 +1397,11 @@ function calcRNR(){
   const mdrtRewardApplies = mdrtAlreadyMet || mdrtTargetMet;
   const mdrtCash = mdrtRewardApplies ? 200000 : 0;
 
+  // Heroes of the Week — WCP by 7th >= ₹10,00,000 -> 43" Samsung TV.
+  // Additional on top of Sizzler/Monthly/NOP ka Dhamaaka/MDRT. One reward per
+  // qualifier — not gated by Gate 2 (not shown as a gate on this scheme).
+  const heroesQualified = wcp7 >= 1000000;
+
   const totalCash = sizzlerResolved.cash + monthlyCash + mdrtCash;
   const trips = [sizzlerResolved.trip, monthlyTrip].filter(Boolean);
 
@@ -1432,6 +1437,10 @@ function calcRNR(){
       : `<div class="line sub"><span class="lbl">Will achieve MDRT this month<br>(self-declared)</span><span class="val">${mdrtTarget ? "Yes" : "No"}</span></div>`}
     <div class="line pos"><span class="lbl">MDRT reward</span><span class="val">${mdrtRewardApplies ? inr(mdrtCash) : "Not applicable"}</span></div>
 
+    <div class="divider"></div>
+    <div class="line sub"><span class="lbl">WCP by 7th</span><span class="val">${inr(wcp7)}</span></div>
+    <div class="line pos"><span class="lbl">Heroes of the Week<br>(WCP by 7th ≥ ₹10,00,000)</span><span class="val">${heroesQualified ? "43\" Samsung TV" : "Not qualified"}</span></div>
+
     <div class="final">
       <span class="flbl">Total RNR (cash)</span>
       <div class="final-row">
@@ -1451,6 +1460,10 @@ function calcRNR(){
 
   if (nopDhamaakaPrize){
     html += `<div class="trip-box"><span class="icon">🎁</span><span class="txt">Plus: NOP ka Dhamaaka — ${nopDhamaakaPrize}</span></div>`;
+  }
+
+  if (heroesQualified){
+    html += `<div class="trip-box"><span class="icon">📺</span><span class="txt">Plus: Heroes of the Week — 43" Samsung TV</span></div>`;
   }
 
   html += `<p class="note">Does not check scheme gates — actual payout is subject to gates being met.</p>`;
