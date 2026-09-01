@@ -373,6 +373,20 @@
           <option value="prime">Prime</option>
         </select>
       </div>
+      <div class="field full">
+        <label>Already an MDRT</label>
+        <select id="in-mdrt-status">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div class="field full" id="mdrt-target-wrap" style="display:block;">
+        <label style="display:flex;align-items:center;gap:6px;font-weight:400;">
+          <input type="checkbox" id="in-mdrt-target" style="width:auto;">
+          Will achieve MDRT this month
+        </label>
+        <p class="hint">Optional, self-declared — not verified against WCP by this calculator.</p>
+      </div>
     </div>
   </div>
 
@@ -723,6 +737,13 @@ document.getElementById("in-ftp-nop").addEventListener("change", ()=>{
   if (!checked) document.getElementById("in-ftp-ticket").value = "";
 });
 
+/* MDRT status toggle — "Will achieve MDRT this month" only applies when not already MDRT */
+document.getElementById("in-mdrt-status").addEventListener("change", ()=>{
+  const isMdrt = document.getElementById("in-mdrt-status").value === "yes";
+  document.getElementById("mdrt-target-wrap").style.display = isMdrt ? "none" : "block";
+  if (isMdrt) document.getElementById("in-mdrt-target").checked = false;
+});
+
 /* result tabs */
 const tabLabels = { pi: "Calculate Incentive", rnr: "Calculate RNR" };
 document.querySelectorAll(".tab").forEach(t=>{
@@ -907,7 +928,8 @@ function markInputsChanged(){
 const allTrackedFieldIds = [
   "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp7","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach","in-book-type","in-13m","in-m0","in-improvement","in-25m",
-  "in-nop-collected","in-goa-choice","in-almaty-choice","in-harley-choice","in-i10-choice","in-nexon-choice","in-ftp-nop","in-ftp-ticket"
+  "in-nop-collected","in-goa-choice","in-almaty-choice","in-harley-choice","in-i10-choice","in-nexon-choice","in-ftp-nop","in-ftp-ticket",
+  "in-mdrt-status","in-mdrt-target"
 ];
 allTrackedFieldIds.forEach(id => {
   const el = document.getElementById(id);
@@ -957,12 +979,17 @@ function boxTable(rows){
 function buildInputBoxes(){
   const boxes = [];
 
-  boxes.push({title:"Business Context", rows:[
+  const bcRows = [
     ["E-code", inputVal("in-ecode")],
     ["State", selectText("in-state")],
     ["Designation", selectText("in-desig")],
-    ["Channel", selectText("in-channel")]
-  ]});
+    ["Channel", selectText("in-channel")],
+    ["Already an MDRT", selectText("in-mdrt-status")]
+  ];
+  if (selectText("in-mdrt-status") === "No"){
+    bcRows.push(["Will achieve MDRT this month", document.getElementById("in-mdrt-target").checked ? "Yes" : "No"]);
+  }
+  boxes.push({title:"Business Context", rows:bcRows});
 
   boxes.push({title:"Milestone WCP", rows:[
     ["WCP by 7th", inputVal("in-wcp7")],
@@ -1020,6 +1047,8 @@ function buildSubmissionPayload(){
     "State": selectText("in-state"),
     "Designation": selectText("in-desig"),
     "Channel": selectText("in-channel"),
+    "Already an MDRT": selectText("in-mdrt-status"),
+    "Will achieve MDRT this month": document.getElementById("in-mdrt-target").checked ? "Yes" : "No",
     "WCP by 7th": document.getElementById("in-wcp7").value,
     "WCP by 14th": document.getElementById("in-wcp14").value,
     "Full month WCP": document.getElementById("in-wcpfull").value,
@@ -1333,6 +1362,8 @@ function calcRNR(){
   const almatyChoice = document.getElementById("in-almaty-choice").value;
   const ftpNopChecked = document.getElementById("in-ftp-nop").checked;
   const ftpTicketSize = parseNum(document.getElementById("in-ftp-ticket").value);
+  const mdrtStatus = document.getElementById("in-mdrt-status").value;
+  const mdrtTarget = document.getElementById("in-mdrt-target").checked;
 
   // Gate 2: 100% target achievement in the month, else RNR payout is 50%
   const target = targets[channel][desig][monthIdx];
@@ -1386,7 +1417,15 @@ function calcRNR(){
   if (nopFor10Slab >= 10) nopDhamaakaPrize = "Lenovo Tablet";
   else if (nop >= 5) nopDhamaakaPrize = "₹5,000 CV";
 
-  const totalCash = sizzlerResolved.cash + monthlyCash;
+  // MDRT reward — ₹2,00,000 in addition to existing rewards.
+  // Already MDRT: requires Full month WCP >= ₹15,00,000.
+  // Not yet MDRT: self-declared "will achieve MDRT this month" checkbox, not verified.
+  const mdrtAlreadyMet = mdrtStatus === "yes" && wcpFull >= 1500000;
+  const mdrtTargetMet = mdrtStatus === "no" && mdrtTarget;
+  const mdrtRewardApplies = mdrtAlreadyMet || mdrtTargetMet;
+  const mdrtCash = mdrtRewardApplies ? 200000 : 0;
+
+  const totalCash = sizzlerResolved.cash + monthlyCash + mdrtCash;
   const trips = [sizzlerResolved.trip, monthlyTrip].filter(Boolean);
 
   let html = `
@@ -1413,6 +1452,13 @@ function calcRNR(){
     ${ftpNopChecked ? `<div class="line sub"><span class="lbl">FTP NOP boost<br>(ticket size ${inr(ftpTicketSize)})</span><span class="val">${ftpBoostApplies ? "✓ Applied — counts as 3 NOP" : "✗ Not applied — ticket size below ₹30,000"}</span></div>
     <div class="line sub"><span class="lbl">Effective NOP<br>(for 10 NOP slab only)</span><span class="val">${nopFor10Slab}</span></div>` : ""}
     <div class="line pos"><span class="lbl">NOP ka Dhamaaka payout</span><span class="val">${nopDhamaakaPrize || "No slab met"}</span></div>
+
+    <div class="divider"></div>
+    <div class="line sub"><span class="lbl">Already an MDRT</span><span class="val">${mdrtStatus === "yes" ? "Yes" : "No"}</span></div>
+    ${mdrtStatus === "yes"
+      ? `<div class="line sub"><span class="lbl">MDRT tier<br>(Full month WCP ≥ ₹15,00,000)</span><span class="val">${mdrtAlreadyMet ? "✓ Met" : "✗ Not met"}</span></div>`
+      : `<div class="line sub"><span class="lbl">Will achieve MDRT this month<br>(self-declared)</span><span class="val">${mdrtTarget ? "Yes" : "No"}</span></div>`}
+    <div class="line pos"><span class="lbl">MDRT reward</span><span class="val">${mdrtRewardApplies ? inr(mdrtCash) : "Not applicable"}</span></div>
 
     <div class="final">
       <span class="flbl">Total RNR (cash)</span>
