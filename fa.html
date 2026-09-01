@@ -398,6 +398,11 @@
         <input type="text" inputmode="decimal" id="in-wcp7" placeholder="0">
       </div>
       <div class="field">
+        <label>WCP by 9th (₹)</label>
+        <input type="text" inputmode="decimal" id="in-wcp9" placeholder="0">
+        <p class="error-msg" id="err-wcp9"></p>
+      </div>
+      <div class="field">
         <label>WCP by 14th (₹)</label>
         <input type="text" inputmode="decimal" id="in-wcp14" placeholder="0">
         <p class="error-msg" id="err-wcp14"></p>
@@ -627,7 +632,7 @@ function formatPercentDisplay(n){
   return (Math.round(n*100)/100) + "%";
 }
 
-const currencyFieldIds = ["in-wcp7","in-wcp14","in-wcpfull","in-trad","in-ftp-ticket"];
+const currencyFieldIds = ["in-wcp7","in-wcp9","in-wcp14","in-wcpfull","in-trad","in-ftp-ticket"];
 const percentFieldIds  = ["in-lastach","in-13m","in-m0","in-25m","in-improvement"];
 
 function cleanNumericString(raw){
@@ -740,6 +745,7 @@ document.querySelectorAll(".tab").forEach(t=>{
 /* ---------- milestone WCP validation ---------- */
 const milestoneChain = [
   {id:"in-wcp7",  label:"WCP by 7th"},
+  {id:"in-wcp9",  label:"WCP by 9th"},
   {id:"in-wcp14", label:"WCP by 14th"},
   {id:"in-wcpfull", label:"Full month WCP"}
 ];
@@ -793,7 +799,7 @@ document.getElementById("in-wcpfull").addEventListener("input", validateTrad);
 
 /* ---------- form completeness & button enable/disable ---------- */
 const requiredTextFieldIds = [
-  "in-wcp7","in-wcp14","in-wcpfull",
+  "in-wcp7","in-wcp9","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach"
 ];
 
@@ -830,7 +836,7 @@ function updateButtonStates(){
 // Fields that, if filled, imply the user has started working through the
 // form — used to prompt for Name/State since they're the first fields.
 const otherInputIds = [
-  "in-wcp7","in-wcp14","in-wcpfull",
+  "in-wcp7","in-wcp9","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach",
   "in-13m","in-m0","in-improvement","in-25m","in-nop-collected"
 ];
@@ -907,7 +913,7 @@ function markInputsChanged(){
 }
 
 const allTrackedFieldIds = [
-  "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp7","in-wcp14","in-wcpfull",
+  "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp7","in-wcp9","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach","in-book-type","in-13m","in-m0","in-improvement","in-25m",
   "in-nop-collected","in-harley-choice","in-i10-choice","in-nexon-choice","in-ftp-nop","in-ftp-ticket",
   "in-mdrt-status","in-mdrt-target"
@@ -974,6 +980,7 @@ function buildInputBoxes(){
 
   boxes.push({title:"Milestone WCP", rows:[
     ["WCP by 7th", inputVal("in-wcp7")],
+    ["WCP by 9th", inputVal("in-wcp9")],
     ["WCP by 14th", inputVal("in-wcp14")],
     ["Full month WCP", inputVal("in-wcpfull")]
   ]});
@@ -1029,6 +1036,7 @@ function buildSubmissionPayload(){
     "Already an MDRT": selectText("in-mdrt-status"),
     "Will achieve MDRT this month": document.getElementById("in-mdrt-target").checked ? "Yes" : "No",
     "WCP by 7th": document.getElementById("in-wcp7").value,
+    "WCP by 9th": document.getElementById("in-wcp9").value,
     "WCP by 14th": document.getElementById("in-wcp14").value,
     "Full month WCP": document.getElementById("in-wcpfull").value,
     "Trad business achieved": document.getElementById("in-trad").value,
@@ -1287,10 +1295,10 @@ function calcProductionIncentive(){
 /* ---------- RNR ---------- */
 // Sizzler rewards can be cash (number) or a trip (string) — no cash-or-trip choice.
 const sizzler = [
-  {threshold:150000, r7:10000,           r14:0},
-  {threshold:300000, r7:25000,           r14:12500},
-  {threshold:500000, r7:"Kashmir (S)",   r14:40000},
-  {threshold:700000, r7:"Kashmir (WS)",  r14:"Kashmir (S)"}
+  {threshold:150000, r9:10000,           r14:0},
+  {threshold:300000, r9:25000,           r14:12500},
+  {threshold:500000, r9:"Kashmir (S)",   r14:40000},
+  {threshold:700000, r9:"Kashmir (WS)",  r14:"Kashmir (S)"}
 ];
 
 const monthly = [
@@ -1328,6 +1336,7 @@ function calcRNR(){
   const monthIdx = FIXED_MONTH_IDX;
   const grp = faGroup(desig);
   const wcp7 = parseNum(document.getElementById("in-wcp7").value);
+  const wcp9 = parseNum(document.getElementById("in-wcp9").value);
   const wcp14 = parseNum(document.getElementById("in-wcp14").value);
   const wcpFull = parseNum(document.getElementById("in-wcpfull").value);
   const nop = parseFloat(document.getElementById("in-nop").value) || 0;
@@ -1341,22 +1350,22 @@ function calcRNR(){
   const achPct = target > 0 ? (wcpFull/target*100) : 0;
   const gate2Met = achPct >= 100;
 
-  // Sizzler — each column (by 7th / by 14th) hits the highest threshold it reaches;
-  // whichever column reaches the higher tier wins overall (ties favor "by 7th",
+  // Sizzler — each column (by 9th / by 14th) hits the highest threshold it reaches;
+  // whichever column reaches the higher tier wins overall (ties favor "by 9th",
   // since its reward at a shared threshold is always same-or-richer).
-  let idx7 = -1, idx14 = -1;
+  let idx9 = -1, idx14 = -1;
   for (let i=0;i<sizzler.length;i++){
-    if (wcp7 >= sizzler[i].threshold) idx7 = i;
+    if (wcp9 >= sizzler[i].threshold) idx9 = i;
     if (wcp14 >= sizzler[i].threshold) idx14 = i;
   }
-  const raw7 = idx7 >= 0 ? sizzler[idx7].r7 : 0;
+  const raw9 = idx9 >= 0 ? sizzler[idx9].r9 : 0;
   const raw14 = idx14 >= 0 ? sizzler[idx14].r14 : 0;
-  const sizzlerSource = idx7 >= idx14 ? "by 7th" : "by 14th";
-  const rawSizzlerValue = idx7 >= idx14 ? raw7 : raw14;
+  const sizzlerSource = idx9 >= idx14 ? "by 9th" : "by 14th";
+  const rawSizzlerValue = idx9 >= idx14 ? raw9 : raw14;
   const sizzlerResolved = resolveSizzlerReward(rawSizzlerValue, gate2Met);
-  const r7Resolved = resolveSizzlerReward(raw7, gate2Met);
+  const r9Resolved = resolveSizzlerReward(raw9, gate2Met);
   const r14Resolved = resolveSizzlerReward(raw14, gate2Met);
-  const displayR7 = r7Resolved.trip ? r7Resolved.trip + " trip" : inr(r7Resolved.cash);
+  const displayR9 = r9Resolved.trip ? r9Resolved.trip + " trip" : inr(r9Resolved.cash);
   const displayR14 = r14Resolved.trip ? r14Resolved.trip + " trip" : inr(r14Resolved.cash);
 
   // Monthly contest — on full month WCP
@@ -1416,7 +1425,7 @@ function calcRNR(){
     <div class="line ${gate2Met ? 'pos' : ''}"><span class="lbl">Gate 2 — 100% target achievement</span><span class="val">${gate2Met ? "✓ Met — full payout" : "✗ Not met — 50% payout, cash only"}</span></div>
 
     <div class="divider"></div>
-    <div class="line sub"><span class="lbl">Sizzler — reward by 7th</span><span class="val">${displayR7}</span></div>
+    <div class="line sub"><span class="lbl">Sizzler — reward by 9th</span><span class="val">${displayR9}</span></div>
     <div class="line sub"><span class="lbl">Sizzler — reward by 14th</span><span class="val">${displayR14}</span></div>
     <div class="line pos"><span class="lbl">Sizzler payout<br>(higher, ${sizzlerSource})</span><span class="val">${sizzlerResolved.trip ? sizzlerResolved.trip + " trip" : inr(sizzlerResolved.cash)}</span></div>
 
