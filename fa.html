@@ -380,23 +380,13 @@
     <h2><span class="n">1</span> Milestone WCP</h2>
     <div class="grid">
       <div class="field">
-        <label>WCP by 8th (₹)</label>
-        <input type="text" inputmode="decimal" id="in-wcp8" placeholder="0">
-      </div>
-      <div class="field">
-        <label>WCP by 10th (₹)</label>
-        <input type="text" inputmode="decimal" id="in-wcp10" placeholder="0">
-        <p class="error-msg" id="err-wcp10"></p>
+        <label>WCP by 7th (₹)</label>
+        <input type="text" inputmode="decimal" id="in-wcp7" placeholder="0">
       </div>
       <div class="field">
         <label>WCP by 14th (₹)</label>
         <input type="text" inputmode="decimal" id="in-wcp14" placeholder="0">
         <p class="error-msg" id="err-wcp14"></p>
-      </div>
-      <div class="field">
-        <label>WCP by 20th (₹)</label>
-        <input type="text" inputmode="decimal" id="in-wcp20" placeholder="0">
-        <p class="error-msg" id="err-wcp20"></p>
       </div>
       <div class="field full">
         <label>Full month WCP (₹)</label>
@@ -606,7 +596,7 @@ function formatPercentDisplay(n){
   return (Math.round(n*100)/100) + "%";
 }
 
-const currencyFieldIds = ["in-wcp8","in-wcp10","in-wcp14","in-wcp20","in-wcpfull","in-trad"];
+const currencyFieldIds = ["in-wcp7","in-wcp14","in-wcpfull","in-trad"];
 const percentFieldIds  = ["in-lastach","in-13m","in-m0","in-25m","in-improvement"];
 
 function cleanNumericString(raw){
@@ -704,10 +694,8 @@ document.querySelectorAll(".tab").forEach(t=>{
 
 /* ---------- milestone WCP validation ---------- */
 const milestoneChain = [
-  {id:"in-wcp8",  label:"WCP by 8th"},
-  {id:"in-wcp10", label:"WCP by 10th"},
+  {id:"in-wcp7",  label:"WCP by 7th"},
   {id:"in-wcp14", label:"WCP by 14th"},
-  {id:"in-wcp20", label:"WCP by 20th"},
   {id:"in-wcpfull", label:"Full month WCP"}
 ];
 
@@ -760,7 +748,7 @@ document.getElementById("in-wcpfull").addEventListener("input", validateTrad);
 
 /* ---------- form completeness & button enable/disable ---------- */
 const requiredTextFieldIds = [
-  "in-wcp8","in-wcp10","in-wcp14","in-wcp20","in-wcpfull",
+  "in-wcp7","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach"
 ];
 
@@ -797,7 +785,7 @@ function updateButtonStates(){
 // Fields that, if filled, imply the user has started working through the
 // form — used to prompt for Name/State since they're the first fields.
 const otherInputIds = [
-  "in-wcp8","in-wcp10","in-wcp14","in-wcp20","in-wcpfull",
+  "in-wcp7","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach",
   "in-13m","in-m0","in-improvement","in-25m","in-nop-collected"
 ];
@@ -874,7 +862,7 @@ function markInputsChanged(){
 }
 
 const allTrackedFieldIds = [
-  "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp8","in-wcp10","in-wcp14","in-wcp20","in-wcpfull",
+  "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp7","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach","in-book-type","in-13m","in-m0","in-improvement","in-25m",
   "in-nop-collected","in-goa-choice","in-almaty-choice"
 ];
@@ -934,10 +922,8 @@ function buildInputBoxes(){
   ]});
 
   boxes.push({title:"Milestone WCP", rows:[
-    ["WCP by 8th", inputVal("in-wcp8")],
-    ["WCP by 10th", inputVal("in-wcp10")],
+    ["WCP by 7th", inputVal("in-wcp7")],
     ["WCP by 14th", inputVal("in-wcp14")],
-    ["WCP by 20th", inputVal("in-wcp20")],
     ["Full month WCP", inputVal("in-wcpfull")]
   ]});
 
@@ -988,10 +974,8 @@ function buildSubmissionPayload(){
     "State": selectText("in-state"),
     "Designation": selectText("in-desig"),
     "Channel": selectText("in-channel"),
-    "WCP by 8th": document.getElementById("in-wcp8").value,
-    "WCP by 10th": document.getElementById("in-wcp10").value,
+    "WCP by 7th": document.getElementById("in-wcp7").value,
     "WCP by 14th": document.getElementById("in-wcp14").value,
-    "WCP by 20th": document.getElementById("in-wcp20").value,
     "Full month WCP": document.getElementById("in-wcpfull").value,
     "Trad business achieved": document.getElementById("in-trad").value,
     "NOP achieved": document.getElementById("in-nop").value,
@@ -1269,15 +1253,6 @@ function monthlyLabel(row){
   return row.tripAlways ? (row.tripAlways + " + " + inr(row.reward)) : inr(row.reward);
 }
 
-// Fast-track discounted thresholds by 20th — map to monthly[3..7]
-const fastTrack = [
-  {idx:3, fa1:450000,  fa2:500000,  fa3:600000},
-  {idx:4, fa1:650000,  fa2:700000,  fa3:900000},
-  {idx:5, fa1:950000,  fa2:1150000, fa3:1350000},
-  {idx:6, fa1:1300000, fa2:1500000, fa3:1700000},
-  {idx:7, fa1:2000000, fa2:2600000, fa3:3250000}
-];
-
 function resolveSizzlerReward(value, goaChoice, almatyChoice, gate2Met){
   if (value <= 0) return {cash:0, trip:null};
   if (!gate2Met){
@@ -1298,10 +1273,8 @@ function calcRNR(){
   const channel = document.getElementById("in-channel").value;
   const monthIdx = FIXED_MONTH_IDX;
   const grp = faGroup(desig);
-  const wcp8 = parseNum(document.getElementById("in-wcp8").value);
-  const wcp10 = parseNum(document.getElementById("in-wcp10").value);
+  const wcp7 = parseNum(document.getElementById("in-wcp7").value);
   const wcp14 = parseNum(document.getElementById("in-wcp14").value);
-  const wcp20 = parseNum(document.getElementById("in-wcp20").value);
   const wcpFull = parseNum(document.getElementById("in-wcpfull").value);
   const nop = parseFloat(document.getElementById("in-nop").value) || 0;
   const goaChoice = document.getElementById("in-goa-choice").value;
@@ -1313,18 +1286,18 @@ function calcRNR(){
   const gate2Met = achPct >= 100;
 
   // Sizzler
-  let r8 = 0, r14 = 0;
-  for (const s of sizzler){ if (wcp8 >= s.threshold) r8 = s.r8; }
+  let r7 = 0, r14 = 0;
+  for (const s of sizzler){ if (wcp7 >= s.threshold) r7 = s.r8; }
   for (const s of sizzler){ if (wcp14 >= s.threshold) r14 = s.r14; }
-  const rawSizzlerValue = Math.max(r8, r14);
-  const sizzlerSource = r8 >= r14 ? "by 8th" : "by 14th";
+  const rawSizzlerValue = Math.max(r7, r14);
+  const sizzlerSource = r7 >= r14 ? "by 7th" : "by 14th";
   const sizzlerResolved = resolveSizzlerReward(rawSizzlerValue, goaChoice, almatyChoice, gate2Met);
-  const r8Resolved = resolveSizzlerReward(r8, goaChoice, almatyChoice, gate2Met);
+  const r7Resolved = resolveSizzlerReward(r7, goaChoice, almatyChoice, gate2Met);
   const r14Resolved = resolveSizzlerReward(r14, goaChoice, almatyChoice, gate2Met);
-  const displayR8 = r8Resolved.trip ? r8Resolved.trip + " trip" : inr(r8Resolved.cash);
+  const displayR7 = r7Resolved.trip ? r7Resolved.trip + " trip" : inr(r7Resolved.cash);
   const displayR14 = r14Resolved.trip ? r14Resolved.trip + " trip" : inr(r14Resolved.cash);
 
-  // Monthly contest — standard, on full month WCP
+  // Monthly contest — on full month WCP
   let stdIdx = -1;
   for (let i=0;i<monthly.length;i++){
     const row = monthly[i];
@@ -1332,15 +1305,7 @@ function calcRNR(){
     if (nop >= row.nop && wcpFull >= thr) stdIdx = i;
   }
 
-  // Fast-track — discounted thresholds against WCP by 20th
-  let ftIdx = -1;
-  for (const f of fastTrack){
-    const row = monthly[f.idx];
-    const thr = f[grp];
-    if (nop >= row.nop && wcp20 >= thr) ftIdx = Math.max(ftIdx, f.idx);
-  }
-
-  const finalIdx = Math.max(stdIdx, ftIdx);
+  const finalIdx = stdIdx;
   const monthlyRow = finalIdx >= 0 ? monthly[finalIdx] : null;
   const monthlyRawCash = monthlyRow ? monthlyRow.reward : 0;
   const monthlyCash = gate2Met ? monthlyRawCash : monthlyRawCash * 0.5;
@@ -1348,10 +1313,6 @@ function calcRNR(){
   const monthlyDisplay = monthlyRow
     ? (gate2Met ? monthlyLabel(monthlyRow) : `${inr(monthlyCash)} (50% — Gate 2 not met)`)
     : "No slab met";
-  const viaFastTrack = ftIdx >= 0 && ftIdx > stdIdx;
-
-  // Zonal meet
-  const zonalQualified = (wcp10 >= 50000) && (finalIdx >= 0);
 
   const totalCash = sizzlerResolved.cash + monthlyCash;
   const trips = [sizzlerResolved.trip, monthlyTrip].filter(Boolean);
@@ -1367,17 +1328,13 @@ function calcRNR(){
     <div class="line ${gate2Met ? 'pos' : ''}"><span class="lbl">Gate 2 — 100% target achievement</span><span class="val">${gate2Met ? "✓ Met — full payout" : "✗ Not met — 50% payout, cash only"}</span></div>
 
     <div class="divider"></div>
-    <div class="line sub"><span class="lbl">Sizzler — reward by 8th</span><span class="val">${displayR8}</span></div>
+    <div class="line sub"><span class="lbl">Sizzler — reward by 7th</span><span class="val">${displayR7}</span></div>
     <div class="line sub"><span class="lbl">Sizzler — reward by 14th</span><span class="val">${displayR14}</span></div>
     <div class="line pos"><span class="lbl">Sizzler payout<br>(higher, ${sizzlerSource})</span><span class="val">${sizzlerResolved.trip ? sizzlerResolved.trip + " trip" : inr(sizzlerResolved.cash)}</span></div>
 
     <div class="divider"></div>
-    <div class="line sub"><span class="lbl">Monthly slab met — standard<br>(full month)</span><span class="val">${stdIdx>=0 ? monthlyLabel(monthly[stdIdx]) : "—"}</span></div>
-    <div class="line sub"><span class="lbl">Monthly slab met — fast-track<br>(by 20th)</span><span class="val">${ftIdx>=0 ? monthlyLabel(monthly[ftIdx]) : "—"}</span></div>
-    <div class="line pos"><span class="lbl">Monthly Contest payout${viaFastTrack ? "<br>(via fast-track)" : ""}</span><span class="val">${monthlyDisplay}</span></div>
-
-    <div class="divider"></div>
-    ${zonalQualified ? `<div class="flag">✓ Qualifies for Zonal Meet (WCP by 10th ≥ ₹50,000 + monthly slab met)</div>` : `<div class="note">Zonal Meet not qualified — needs WCP by 10th ≥ ₹50,000 and any Monthly Contest slab met.</div>`}
+    <div class="line sub"><span class="lbl">Monthly slab met<br>(full month)</span><span class="val">${stdIdx>=0 ? monthlyLabel(monthly[stdIdx]) : "—"}</span></div>
+    <div class="line pos"><span class="lbl">Monthly Contest payout</span><span class="val">${monthlyDisplay}</span></div>
 
     <div class="final">
       <span class="flbl">Total RNR (cash)</span>
