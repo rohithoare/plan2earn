@@ -412,6 +412,18 @@
       <label>NOP achieved (full month)</label>
       <input type="number" id="in-nop" placeholder="e.g. 3">
     </div>
+    <div class="field full">
+      <label style="display:flex;align-items:center;gap:6px;font-weight:400;">
+        <input type="checkbox" id="in-ftp-nop" style="width:auto;">
+        FTP NOP
+      </label>
+      <p class="hint">If checked, 1 FTP NOP will automatically be counted as 3 for the second slab (10 NOP) in NOP ka Dhamaaka contest.</p>
+    </div>
+    <div class="field full" id="ftp-ticket-wrap" style="display:none;">
+      <label>FTP ticket size (₹)</label>
+      <input type="text" inputmode="decimal" id="in-ftp-ticket" placeholder="e.g. 35000">
+      <p class="hint">Must be ≥ ₹30,000 (Min ATS) for the 1 FTP = 3 NOP boost to apply.</p>
+    </div>
   </div>
 
   <div class="card">
@@ -596,7 +608,7 @@ function formatPercentDisplay(n){
   return (Math.round(n*100)/100) + "%";
 }
 
-const currencyFieldIds = ["in-wcp7","in-wcp14","in-wcpfull","in-trad"];
+const currencyFieldIds = ["in-wcp7","in-wcp14","in-wcpfull","in-trad","in-ftp-ticket"];
 const percentFieldIds  = ["in-lastach","in-13m","in-m0","in-25m","in-improvement"];
 
 function cleanNumericString(raw){
@@ -678,6 +690,13 @@ document.querySelectorAll('input[name="alloc-status"]').forEach(r=>{
     document.getElementById("nop-collected-wrap").style.display = (status === "allocated") ? "block" : "none";
     document.getElementById("not-allocated-note").style.display = (status === "not-allocated") ? "block" : "none";
   });
+});
+
+/* FTP NOP toggle — reveals FTP ticket size input for NOP ka Dhamaaka contest */
+document.getElementById("in-ftp-nop").addEventListener("change", ()=>{
+  const checked = document.getElementById("in-ftp-nop").checked;
+  document.getElementById("ftp-ticket-wrap").style.display = checked ? "block" : "none";
+  if (!checked) document.getElementById("in-ftp-ticket").value = "";
 });
 
 /* result tabs */
@@ -864,7 +883,7 @@ function markInputsChanged(){
 const allTrackedFieldIds = [
   "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp7","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach","in-book-type","in-13m","in-m0","in-improvement","in-25m",
-  "in-nop-collected","in-goa-choice","in-almaty-choice"
+  "in-nop-collected","in-goa-choice","in-almaty-choice","in-ftp-nop","in-ftp-ticket"
 ];
 allTrackedFieldIds.forEach(id => {
   const el = document.getElementById(id);
@@ -1279,6 +1298,8 @@ function calcRNR(){
   const nop = parseFloat(document.getElementById("in-nop").value) || 0;
   const goaChoice = document.getElementById("in-goa-choice").value;
   const almatyChoice = document.getElementById("in-almaty-choice").value;
+  const ftpNopChecked = document.getElementById("in-ftp-nop").checked;
+  const ftpTicketSize = parseNum(document.getElementById("in-ftp-ticket").value);
 
   // Gate 2: 100% target achievement in the month, else RNR payout is 50%
   const target = targets[channel][desig][monthIdx];
@@ -1314,6 +1335,15 @@ function calcRNR(){
     ? (gate2Met ? monthlyLabel(monthlyRow) : `${inr(monthlyCash)} (50% — Gate 2 not met)`)
     : "No slab met";
 
+  // NOP ka Dhamaaka — 5 NOP -> 5K CV, 10 NOP -> Lenovo Tablet (highest slab wins)
+  // 1 FTP NOP counts as 3 NOP, but only toward the 10 NOP slab, and only if the
+  // FTP ticket size meets the ₹30,000 Min ATS requirement.
+  const ftpBoostApplies = ftpNopChecked && ftpTicketSize >= 30000;
+  const nopFor10Slab = nop + (ftpBoostApplies ? 2 : 0);
+  let nopDhamaakaPrize = null;
+  if (nopFor10Slab >= 10) nopDhamaakaPrize = "Lenovo Tablet";
+  else if (nop >= 5) nopDhamaakaPrize = "₹5,000 CV";
+
   const totalCash = sizzlerResolved.cash + monthlyCash;
   const trips = [sizzlerResolved.trip, monthlyTrip].filter(Boolean);
 
@@ -1336,6 +1366,12 @@ function calcRNR(){
     <div class="line sub"><span class="lbl">Monthly slab met<br>(full month)</span><span class="val">${stdIdx>=0 ? monthlyLabel(monthly[stdIdx]) : "—"}</span></div>
     <div class="line pos"><span class="lbl">Monthly Contest payout</span><span class="val">${monthlyDisplay}</span></div>
 
+    <div class="divider"></div>
+    <div class="line sub"><span class="lbl">NOP achieved</span><span class="val">${nop}</span></div>
+    ${ftpNopChecked ? `<div class="line sub"><span class="lbl">FTP NOP boost<br>(ticket size ${inr(ftpTicketSize)})</span><span class="val">${ftpBoostApplies ? "✓ Applied — counts as 3 NOP" : "✗ Not applied — ticket size below ₹30,000"}</span></div>
+    <div class="line sub"><span class="lbl">Effective NOP<br>(for 10 NOP slab only)</span><span class="val">${nopFor10Slab}</span></div>` : ""}
+    <div class="line pos"><span class="lbl">NOP ka Dhamaaka payout</span><span class="val">${nopDhamaakaPrize || "No slab met"}</span></div>
+
     <div class="final">
       <span class="flbl">Total RNR (cash)</span>
       <div class="final-row">
@@ -1348,6 +1384,10 @@ function calcRNR(){
   trips.forEach(t=>{
     html += `<div class="trip-box"><span class="icon">✈️</span><span class="txt">Plus: ${t} trip</span></div>`;
   });
+
+  if (nopDhamaakaPrize){
+    html += `<div class="trip-box"><span class="icon">🎁</span><span class="txt">Plus: NOP ka Dhamaaka — ${nopDhamaakaPrize}</span></div>`;
+  }
 
   html += `<p class="note">Does not check scheme gates — actual payout is subject to gates being met.</p>`;
 
