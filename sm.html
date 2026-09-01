@@ -450,11 +450,6 @@
         <p class="error-msg" id="err-faactive9"></p>
       </div>
       <div class="field">
-        <label>FA active by 10th</label>
-        <input type="text" inputmode="decimal" id="in-faactive10" placeholder="0">
-        <p class="error-msg" id="err-faactive10"></p>
-      </div>
-      <div class="field">
         <label>FA active by 14th</label>
         <input type="text" inputmode="decimal" id="in-faactive14" placeholder="0">
         <p class="error-msg" id="err-faactive14"></p>
@@ -692,7 +687,7 @@ function parseNum(val){
 
 const currencyFieldIds = ["in-wcp9","in-wcp14","in-wcpfull","in-selfcode","in-trad"];
 const percentFieldIds  = ["in-lastach","in-13m","in-m0","in-25m","in-improvement","in-movement"];
-const plainNumberFieldIds = ["in-teamsize","in-faactive9","in-faactive10","in-faactive14","in-faactivefull","in-faearners"];
+const plainNumberFieldIds = ["in-teamsize","in-faactive9","in-faactive14","in-faactivefull","in-faearners"];
 
 function cleanNumericString(raw){
   let cleaned = raw.replace(/[^0-9.]/g, "");
@@ -830,7 +825,6 @@ milestoneChain.forEach(m => {
 /* ---------- FA active count validation (later date can't be lower) ---------- */
 const faActiveChain = [
   {id:"in-faactive9",  label:"FA active by 9th"},
-  {id:"in-faactive10", label:"FA active by 10th"},
   {id:"in-faactive14", label:"FA active by 14th"},
   {id:"in-faactivefull", label:"FA active — full month"}
 ];
@@ -885,7 +879,7 @@ document.getElementById("in-wcpfull").addEventListener("input", validateTrad);
 /* ---------- form completeness & button enable/disable ---------- */
 const requiredTextFieldIds = [
   "in-wcp9","in-wcp14","in-wcpfull","in-selfcode",
-  "in-teamsize","in-faactive9","in-faactive10","in-faactive14","in-faactivefull","in-faearners",
+  "in-teamsize","in-faactive9","in-faactive14","in-faactivefull","in-faearners",
   "in-trad","in-lastach"
 ];
 
@@ -921,7 +915,7 @@ function updateButtonStates(){
 
 const otherInputIds = [
   "in-wcp9","in-wcp14","in-wcpfull","in-selfcode",
-  "in-teamsize","in-faactive9","in-faactive10","in-faactive14","in-faactivefull","in-faearners",
+  "in-teamsize","in-faactive9","in-faactive14","in-faactivefull","in-faearners",
   "in-trad","in-lastach","in-13m","in-m0","in-improvement","in-25m","in-movement"
 ];
 
@@ -996,7 +990,7 @@ function markInputsChanged(){
 
 const allTrackedFieldIds = [
   "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp9","in-wcp14","in-wcpfull","in-selfcode",
-  "in-teamsize","in-faactive9","in-faactive10","in-faactive14","in-faactivefull","in-faearners",
+  "in-teamsize","in-faactive9","in-faactive14","in-faactivefull","in-faearners",
   "in-trad","in-lastach","in-book-type","in-13m","in-m0","in-improvement","in-25m","in-movement",
   "in-harley-choice","in-i10-choice","in-nexon-choice"
 ];
@@ -1071,7 +1065,6 @@ function buildInputBoxes(){
   boxes.push({title:"FA Team & Active", rows:[
     ["FA team size", inputVal("in-teamsize")],
     ["FA active by 9th", inputVal("in-faactive9")],
-    ["FA active by 10th", inputVal("in-faactive10")],
     ["FA active by 14th", inputVal("in-faactive14")],
     ["FA active — full month", inputVal("in-faactivefull")],
     ["FA incentive earners", inputVal("in-faearners")]
@@ -1130,7 +1123,6 @@ function buildSubmissionPayload(){
     "Self-code business achieved": document.getElementById("in-selfcode").value,
     "FA team size": document.getElementById("in-teamsize").value,
     "FA active by 9th": document.getElementById("in-faactive9").value,
-    "FA active by 10th": document.getElementById("in-faactive10").value,
     "FA active by 14th": document.getElementById("in-faactive14").value,
     "FA active full month": document.getElementById("in-faactivefull").value,
     "FA incentive earners": document.getElementById("in-faearners").value,
@@ -1485,9 +1477,7 @@ function calcRNR(){
   const wcp14 = parseNum(document.getElementById("in-wcp14").value);
   const wcpFull = parseNum(document.getElementById("in-wcpfull").value);
   const faActive9 = parseNum(document.getElementById("in-faactive9").value);
-  const faActive10 = parseNum(document.getElementById("in-faactive10").value);
   const faActive14 = parseNum(document.getElementById("in-faactive14").value);
-  const faActiveFull = parseNum(document.getElementById("in-faactivefull").value);
 
   // Gate 2: 100% target achievement in the month, else RNR payout is 50% (cash only)
   const target = targets[channel][desig][monthIdx];
@@ -1540,9 +1530,6 @@ function calcRNR(){
     ? (gate2Met ? (monthlyVehicleDisplay || monthlyLabel(monthlyRow)) : `${inr(monthlyCash)} (50% — Gate 2 not met)`)
     : "No slab met";
 
-  // Zonal meet — 2 FA active by 10th + 3 FA active by full month + any Monthly Contest slab met
-  const zonalQualified = (faActive10 >= 2) && (faActiveFull >= 3) && (finalIdx >= 0);
-
   const totalCash = sizzlerResolved.cash + monthlyCash;
   const trips = [sizzlerResolved.trip, monthlyTrip].filter(Boolean);
 
@@ -1562,9 +1549,6 @@ function calcRNR(){
     <div class="divider"></div>
     <div class="line sub"><span class="lbl">Monthly slab met<br>(full month)</span><span class="val">${stdIdx>=0 ? monthlyLabel(monthly[stdIdx]) : "—"}</span></div>
     <div class="line pos"><span class="lbl">Monthly Contest payout</span><span class="val">${monthlyDisplay}</span></div>
-
-    <div class="divider"></div>
-    ${zonalQualified ? `<div class="flag">✓ Qualifies for Zonal Meet (2 FA active by 10th + 3 FA active full month + monthly slab met)</div>` : `<div class="note">Zonal Meet not qualified — needs 2 FA active by 10th, 3 FA active by full month, and any Monthly Contest slab met.</div>`}
 
     <div class="final">
       <span class="flbl">Total RNR (cash)</span>
