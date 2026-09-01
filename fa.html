@@ -517,22 +517,6 @@
   <div class="card">
     <div class="grid">
       <div class="field">
-        <label>Goa / ₹35,000</label>
-        <select id="in-goa-choice">
-          <option value="cash">₹35,000 cash</option>
-          <option value="trip">Goa trip</option>
-        </select>
-        <p class="hint">For Goa-tier reward.</p>
-      </div>
-      <div class="field">
-        <label>Almaty / ₹70,000</label>
-        <select id="in-almaty-choice">
-          <option value="cash">₹70,000 cash</option>
-          <option value="trip">Almaty trip</option>
-        </select>
-        <p class="hint">For Almaty-tier reward.</p>
-      </div>
-      <div class="field">
         <label>Harley Davidson / ₹3,00,000</label>
         <select id="in-harley-choice">
           <option value="cash">₹3,00,000 cash</option>
@@ -928,7 +912,7 @@ function markInputsChanged(){
 const allTrackedFieldIds = [
   "in-name","in-ecode","in-state","in-desig","in-channel","in-wcp7","in-wcp14","in-wcpfull",
   "in-trad","in-nop","in-lastach","in-book-type","in-13m","in-m0","in-improvement","in-25m",
-  "in-nop-collected","in-goa-choice","in-almaty-choice","in-harley-choice","in-i10-choice","in-nexon-choice","in-ftp-nop","in-ftp-ticket",
+  "in-nop-collected","in-harley-choice","in-i10-choice","in-nexon-choice","in-ftp-nop","in-ftp-ticket",
   "in-mdrt-status","in-mdrt-target"
 ];
 allTrackedFieldIds.forEach(id => {
@@ -1022,8 +1006,6 @@ function buildInputBoxes(){
   boxes.push({title:"Quality Modifier", rows:qmRows});
 
   boxes.push({title:"Reward Choices", rows:[
-    ["Goa / ₹35,000", selectText("in-goa-choice")],
-    ["Almaty / ₹70,000", selectText("in-almaty-choice")],
     ["Harley Davidson / ₹3,00,000", selectText("in-harley-choice")],
     ["Hyundai i10 / ₹7,00,000", selectText("in-i10-choice")],
     ["Tata Nexon / ₹10,00,000", selectText("in-nexon-choice")]
@@ -1069,8 +1051,6 @@ function buildSubmissionPayload(){
       payload["NOP collected"] = document.getElementById("in-nop-collected").value;
     }
   }
-  payload["Goa choice"] = selectText("in-goa-choice");
-  payload["Almaty choice"] = selectText("in-almaty-choice");
   payload["Harley Davidson choice"] = selectText("in-harley-choice");
   payload["Hyundai i10 choice"] = selectText("in-i10-choice");
   payload["Tata Nexon choice"] = selectText("in-nexon-choice");
@@ -1308,11 +1288,12 @@ function calcProductionIncentive(){
 }
 
 /* ---------- RNR ---------- */
+// Sizzler rewards can be cash (number) or a trip (string) — no cash-or-trip choice.
 const sizzler = [
-  {threshold:100000, r8:10000, r14:0},
-  {threshold:250000, r8:25000, r14:12500},
-  {threshold:450000, r8:35000, r14:25000},   // GOA/35K, 25K
-  {threshold:700000, r8:70000, r14:35000}    // ALMATY/70K, GOA/35K
+  {threshold:150000, r7:10000,           r14:0},
+  {threshold:300000, r7:25000,           r14:12500},
+  {threshold:500000, r7:"Kashmir (S)",   r14:40000},
+  {threshold:700000, r7:"Kashmir (WS)",  r14:"Kashmir (S)"}
 ];
 
 const monthly = [
@@ -1334,19 +1315,14 @@ function monthlyLabel(row){
   return inr(row.reward);
 }
 
-function resolveSizzlerReward(value, goaChoice, almatyChoice, gate2Met){
-  if (value <= 0) return {cash:0, trip:null};
+function resolveSizzlerReward(value, gate2Met){
+  const isTrip = typeof value === "string";
+  if (!isTrip && (!value || value <= 0)) return {cash:0, trip:null};
   if (!gate2Met){
-    // Gate 2 not met: forced to cash at 50% of slab value, trip options unavailable
-    return {cash: value * 0.5, trip:null};
+    // Gate 2 not met: forced to 50% cash — trips have no cash equivalent, so forfeited entirely
+    return {cash: isTrip ? 0 : value * 0.5, trip:null};
   }
-  if (value === 35000){
-    return goaChoice === "trip" ? {cash:0, trip:"Goa"} : {cash:35000, trip:null};
-  }
-  if (value === 70000){
-    return almatyChoice === "trip" ? {cash:0, trip:"Almaty"} : {cash:70000, trip:null};
-  }
-  return {cash:value, trip:null};
+  return isTrip ? {cash:0, trip:value} : {cash:value, trip:null};
 }
 
 function calcRNR(){
@@ -1358,8 +1334,6 @@ function calcRNR(){
   const wcp14 = parseNum(document.getElementById("in-wcp14").value);
   const wcpFull = parseNum(document.getElementById("in-wcpfull").value);
   const nop = parseFloat(document.getElementById("in-nop").value) || 0;
-  const goaChoice = document.getElementById("in-goa-choice").value;
-  const almatyChoice = document.getElementById("in-almaty-choice").value;
   const ftpNopChecked = document.getElementById("in-ftp-nop").checked;
   const ftpTicketSize = parseNum(document.getElementById("in-ftp-ticket").value);
   const mdrtStatus = document.getElementById("in-mdrt-status").value;
@@ -1370,15 +1344,21 @@ function calcRNR(){
   const achPct = target > 0 ? (wcpFull/target*100) : 0;
   const gate2Met = achPct >= 100;
 
-  // Sizzler
-  let r7 = 0, r14 = 0;
-  for (const s of sizzler){ if (wcp7 >= s.threshold) r7 = s.r8; }
-  for (const s of sizzler){ if (wcp14 >= s.threshold) r14 = s.r14; }
-  const rawSizzlerValue = Math.max(r7, r14);
-  const sizzlerSource = r7 >= r14 ? "by 7th" : "by 14th";
-  const sizzlerResolved = resolveSizzlerReward(rawSizzlerValue, goaChoice, almatyChoice, gate2Met);
-  const r7Resolved = resolveSizzlerReward(r7, goaChoice, almatyChoice, gate2Met);
-  const r14Resolved = resolveSizzlerReward(r14, goaChoice, almatyChoice, gate2Met);
+  // Sizzler — each column (by 7th / by 14th) hits the highest threshold it reaches;
+  // whichever column reaches the higher tier wins overall (ties favor "by 7th",
+  // since its reward at a shared threshold is always same-or-richer).
+  let idx7 = -1, idx14 = -1;
+  for (let i=0;i<sizzler.length;i++){
+    if (wcp7 >= sizzler[i].threshold) idx7 = i;
+    if (wcp14 >= sizzler[i].threshold) idx14 = i;
+  }
+  const raw7 = idx7 >= 0 ? sizzler[idx7].r7 : 0;
+  const raw14 = idx14 >= 0 ? sizzler[idx14].r14 : 0;
+  const sizzlerSource = idx7 >= idx14 ? "by 7th" : "by 14th";
+  const rawSizzlerValue = idx7 >= idx14 ? raw7 : raw14;
+  const sizzlerResolved = resolveSizzlerReward(rawSizzlerValue, gate2Met);
+  const r7Resolved = resolveSizzlerReward(raw7, gate2Met);
+  const r14Resolved = resolveSizzlerReward(raw14, gate2Met);
   const displayR7 = r7Resolved.trip ? r7Resolved.trip + " trip" : inr(r7Resolved.cash);
   const displayR14 = r14Resolved.trip ? r14Resolved.trip + " trip" : inr(r14Resolved.cash);
 
