@@ -1282,11 +1282,13 @@ function calcProductionIncentive(){
 
 /* ---------- RNR ---------- */
 // Sizzler rewards can be cash (number) or a trip (string) — no cash-or-trip choice.
+// extraNeeded: additional Full month WCP (beyond this slab's threshold) required
+// in the rest of the month to actually receive this slab's reward.
 const sizzler = [
-  {threshold:150000, r9:10000,           r14:0},
-  {threshold:300000, r9:25000,           r14:12500},
-  {threshold:500000, r9:"Kashmir (S)",   r14:40000},
-  {threshold:700000, r9:"Kashmir (WS)",  r14:"Kashmir (S)"}
+  {threshold:150000, r9:10000,           r14:0,      extraNeeded:50000},
+  {threshold:300000, r9:25000,           r14:12500,  extraNeeded:100000},
+  {threshold:500000, r9:"Kashmir (S)",   r14:40000,  extraNeeded:100000},
+  {threshold:700000, r9:"Kashmir (WS)",  r14:"Kashmir (S)", extraNeeded:100000}
 ];
 
 const monthly = [
@@ -1349,7 +1351,16 @@ function calcRNR(){
   const raw14 = idx14 >= 0 ? sizzler[idx14].r14 : 0;
   const sizzlerSource = idx9 >= idx14 ? "by 9th" : "by 14th";
   const rawSizzlerValue = idx9 >= idx14 ? raw9 : raw14;
-  const sizzlerResolved = resolveSizzlerReward(rawSizzlerValue, gate2Met);
+
+  // Extra business gate — beyond the milestone, Full month WCP must reach the
+  // slab's threshold + extra (₹50,000 for slab 1, ₹1,00,000 for slab 2+) to
+  // actually receive that slab's Sizzler reward.
+  const sizzlerChosenIdx = idx9 >= idx14 ? idx9 : idx14;
+  const sizzlerExtraNeeded = sizzlerChosenIdx >= 0 ? sizzler[sizzlerChosenIdx].threshold + sizzler[sizzlerChosenIdx].extraNeeded : 0;
+  const sizzlerExtraMet = sizzlerChosenIdx < 0 || wcpFull >= sizzlerExtraNeeded;
+
+  const sizzlerResolvedRaw = resolveSizzlerReward(rawSizzlerValue, gate2Met);
+  const sizzlerResolved = sizzlerExtraMet ? sizzlerResolvedRaw : {cash:0, trip:null};
   const r9Resolved = resolveSizzlerReward(raw9, gate2Met);
   const r14Resolved = resolveSizzlerReward(raw14, gate2Met);
   const displayR9 = r9Resolved.trip ? r9Resolved.trip + " trip" : inr(r9Resolved.cash);
@@ -1418,6 +1429,7 @@ function calcRNR(){
     <div class="divider"></div>
     <div class="line sub"><span class="lbl">Sizzler — reward by 9th</span><span class="val">${displayR9}</span></div>
     <div class="line sub"><span class="lbl">Sizzler — reward by 14th</span><span class="val">${displayR14}</span></div>
+    ${sizzlerChosenIdx >= 0 ? `<div class="line ${sizzlerExtraMet ? 'pos' : ''}"><span class="lbl">Additional business gate<br>(Full month WCP ≥ ${inr(sizzlerExtraNeeded)})</span><span class="val">${sizzlerExtraMet ? "✓ Met" : "✗ Not met — reward forfeited"}</span></div>` : ""}
     <div class="line pos"><span class="lbl">Sizzler payout<br>(higher, ${sizzlerSource})</span><span class="val">${sizzlerResolved.trip ? sizzlerResolved.trip + " trip" : inr(sizzlerResolved.cash)}</span></div>
 
     <div class="divider"></div>
